@@ -1,0 +1,118 @@
+import random
+
+def print_board(board):
+    for row in board:
+        print(" | ".join(row))
+        print("-" * 9)
+
+def check_winner(board, player):
+    win_conditions = [
+        # Rows
+        [board[0][0], board[0][1], board[0][2]],
+        [board[1][0], board[1][1], board[1][2]],
+        [board[2][0], board[2][1], board[2][2]],
+        # Columns
+        [board[0][0], board[1][0], board[2][0]],
+        [board[0][1], board[1][1], board[2][1]],
+        [board[0][2], board[1][2], board[2][2]],
+        # Diagonals
+        [board[0][0], board[1][1], board[2][2]],
+        [board[0][2], board[1][1], board[2][0]],
+    ]
+    return [player, player, player] in win_conditions
+
+def is_board_full(board):
+    return all(cell != ' ' for row in board for cell in row)
+
+def minimax(board, depth, is_maximizing):
+    if check_winner(board, 'O'):
+        return 1
+    elif check_winner(board, 'X'):
+        return -1
+    elif is_board_full(board):
+        return 0
+
+    if is_maximizing:
+        best_score = -float('inf')
+        for i in range(3):
+            for j in range(3):
+                if board[i][j] == ' ':
+                    board[i][j] = 'O'
+                    score = minimax(board, depth + 1, False)
+                    board[i][j] = ' '
+                    best_score = max(score, best_score)
+        return best_score
+    else:
+        best_score = float('inf')
+        for i in range(3):
+            for j in range(3):
+                if board[i][j] == ' ':
+                    board[i][j] = 'X'
+                    score = minimax(board, depth + 1, True)
+                    board[i][j] = ' '
+                    best_score = min(score, best_score)
+        return best_score
+
+def computer_move(board):
+    # 30% chance to play random move
+    if random.random() < 0.3:
+        available_moves = [(i, j) for i in range(3) for j in range(3) if board[i][j] == ' ']
+        move = random.choice(available_moves)
+        board[move[0]][move[1]] = 'O'
+        print("Computer plays a random move.")
+    else:
+        # Use minimax for optimal move
+        best_score = -float('inf')
+        move = (-1, -1)
+        for i in range(3):
+            for j in range(3):
+                if board[i][j] == ' ':
+                    board[i][j] = 'O'
+                    score = minimax(board, 0, False)
+                    board[i][j] = ' '
+                    if score > best_score:
+                        best_score = score
+                        move = (i, j)
+        board[move[0]][move[1]] = 'O'
+        print("Computer plays an optimal move.")
+
+def human_move(board):
+    while True:
+        try:
+            move = input("Enter your move (row and column from 1 to 3, separated by space): ")
+            row, col = map(int, move.split())
+            if row in [1, 2, 3] and col in [1, 2, 3] and board[row-1][col-1] == ' ':
+                board[row-1][col-1] = 'X'
+                break
+            else:
+                print("Invalid move, spot taken or out of range. Try again.")
+        except:
+            print("Invalid input format. Please enter two numbers like '1 3'.")
+
+def main():
+    board = [[' ' for _ in range(3)] for _ in range(3)]
+    print("Welcome to Tic-Tac-Toe! You are X, computer is O.")
+    print_board(board)
+
+    while True:
+        human_move(board)
+        print_board(board)
+        if check_winner(board, 'X'):
+            print("Congratulations, you win!")
+            break
+        if is_board_full(board):
+            print("It's a draw!")
+            break
+
+        print("Computer's turn:")
+        computer_move(board)
+        print_board(board)
+        if check_winner(board, 'O'):
+            print("Computer wins!")
+            break
+        if is_board_full(board):
+            print("It's a draw!")
+            break
+
+if __name__ == "__main__":
+    main()
